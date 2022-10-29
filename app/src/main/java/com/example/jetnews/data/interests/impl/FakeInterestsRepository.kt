@@ -47,15 +47,11 @@ class FakeInterestsRepository : InterestsRepository {
 
     private val people by lazy {
         listOf(
-            "Kobalt Toral",
-            "K'Kola Uvarek",
-            "Kris Vriloc",
-            "Grala Valdyr",
-            "Kruel Valaxar",
-            "L'Elij Venonn",
-            "Kraag Solazarn",
-            "Tava Targesh",
-            "Kemarrin Muuda"
+            "Nelson Mandala",
+            "Michelle Obama",
+            "Babe Ruth",
+            "Martin Luther King Jr.",
+            "Michael Scott",
         )
     }
 

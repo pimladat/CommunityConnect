@@ -19,13 +19,14 @@ plugins {
     id 'kotlin-android'
     id "org.jetbrains.kotlin.kapt"
 }
+apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     defaultConfig {
         applicationId 'com.example.jetnews'
-        minSdkVersion 23
-        targetSdkVersion 32
+        minSdkVersion 26
+        targetSdkVersion 33
         versionCode 1
         versionName '1.0'
         vectorDrawables.useSupportLibrary = true
@@ -147,6 +148,8 @@ dependencies {
     testImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
     // TODO: Bump to 4.6.* after https://github.com/robolectric/robolectric/issues/6593 is fixed
     testImplementation 'org.robolectric:robolectric:4.5.1'
+    implementation "androidx.core:core-ktx:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
@@ -163,4 +166,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
 
 tasks.withType(Test) {
     systemProperty "robolectric.logging", "stdout"
-} 
+}
+repositories {
+    mavenCentral()
+}

@@ -16,7 +16,9 @@
 
 package com.example.jetnews.ui.article
 
+import HyperlinkText
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.text.Html
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -64,6 +66,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.tooling.preview.Preview
@@ -123,12 +126,15 @@ fun LazyListScope.postContentItems(post: Post) {
         Spacer(Modifier.height(24.dp))
     }
     items(post.paragraphs) {
+        it.text = Html.fromHtml(it.text).toString()
         Paragraph(paragraph = it)
     }
+
     item {
         Spacer(Modifier.height(48.dp))
     }
 }
+
 
 @Composable
 private fun PostHeaderImage(post: Post) {

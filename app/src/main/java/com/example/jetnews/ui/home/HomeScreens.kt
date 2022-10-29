@@ -60,6 +60,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.rememberScaffoldState
@@ -129,11 +130,14 @@ fun HomeFeedWithArticleDetailsScreen(
     onInteractWithList: () -> Unit,
     onInteractWithDetail: (String) -> Unit,
     openDrawer: () -> Unit,
+    openSearch: () -> Unit,
+    filterFavorites: () -> Unit,
     homeListLazyListState: LazyListState,
     articleDetailLazyListStates: Map<String, LazyListState>,
     scaffoldState: ScaffoldState,
     modifier: Modifier = Modifier,
     onSearchInputChanged: (String) -> Unit,
+    onSubmitSearch: (String) -> Unit
 ) {
     HomeScreenWithList(
         uiState = uiState,
@@ -141,6 +145,8 @@ fun HomeFeedWithArticleDetailsScreen(
         onRefreshPosts = onRefreshPosts,
         onErrorDismiss = onErrorDismiss,
         openDrawer = openDrawer,
+        openSearch = openSearch,
+        filterFavorites = filterFavorites,
         homeListLazyListState = homeListLazyListState,
         scaffoldState = scaffoldState,
         modifier = modifier,
@@ -154,6 +160,7 @@ fun HomeFeedWithArticleDetailsScreen(
                 onArticleTapped = onSelectPost,
                 onToggleFavorite = onToggleFavorite,
                 contentPadding = contentPadding,
+                isSearchOpen = hasPostsUiState.isSearchOpen,
                 modifier = Modifier
                     .width(334.dp)
                     .notifyInput(onInteractWithList)
@@ -161,6 +168,7 @@ fun HomeFeedWithArticleDetailsScreen(
                 state = homeListLazyListState,
                 searchInput = hasPostsUiState.searchInput,
                 onSearchInputChanged = onSearchInputChanged,
+                onSubmitSearch = onSubmitSearch,
             )
             // Crossfade between different detail posts
             Crossfade(targetState = hasPostsUiState.selectedPost) { detailPost ->
@@ -229,11 +237,14 @@ fun HomeFeedScreen(
     onRefreshPosts: () -> Unit,
     onErrorDismiss: (Long) -> Unit,
     openDrawer: () -> Unit,
+    openSearch: () -> Unit,
+    filterFavorites: () -> Unit,
     homeListLazyListState: LazyListState,
     scaffoldState: ScaffoldState,
     modifier: Modifier = Modifier,
     searchInput: String = "",
     onSearchInputChanged: (String) -> Unit,
+    onSubmitSearch: (String) -> Unit,
 ) {
     HomeScreenWithList(
         uiState = uiState,
@@ -241,6 +252,8 @@ fun HomeFeedScreen(
         onRefreshPosts = onRefreshPosts,
         onErrorDismiss = onErrorDismiss,
         openDrawer = openDrawer,
+        openSearch = openSearch,
+        filterFavorites = filterFavorites,
         homeListLazyListState = homeListLazyListState,
         scaffoldState = scaffoldState,
         modifier = modifier
@@ -256,7 +269,9 @@ fun HomeFeedScreen(
             ),
             modifier = contentModifier,
             state = homeListLazyListState,
+            isSearchOpen = hasPostsUiState.isSearchOpen,
             searchInput = searchInput,
+            onSubmitSearch = onSubmitSearch,
             onSearchInputChanged = onSearchInputChanged
         )
     }
@@ -278,6 +293,8 @@ private fun HomeScreenWithList(
     onRefreshPosts: () -> Unit,
     onErrorDismiss: (Long) -> Unit,
     openDrawer: () -> Unit,
+    openSearch: () -> Unit,
+    filterFavorites: () -> Unit,
     homeListLazyListState: LazyListState,
     scaffoldState: ScaffoldState,
     modifier: Modifier = Modifier,
@@ -293,7 +310,9 @@ private fun HomeScreenWithList(
             if (showTopAppBar) {
                 HomeTopAppBar(
                     openDrawer = openDrawer,
-                    elevation = if (!homeListLazyListState.isScrolled) 0.dp else 4.dp
+                    elevation = if (!homeListLazyListState.isScrolled) 0.dp else 4.dp,
+                    openSearch = openSearch,
+                    filterFavorites = filterFavorites,
                 )
             }
         },
@@ -412,24 +431,29 @@ private fun PostList(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     state: LazyListState = rememberLazyListState(),
+    isSearchOpen: Boolean,
     searchInput: String = "",
     onSearchInputChanged: (String) -> Unit,
+    onSubmitSearch: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = modifier,
         contentPadding = contentPadding,
         state = state
     ) {
-        if (showExpandedSearch) {
+        if (isSearchOpen) {
             item {
                 HomeSearch(
                     Modifier.padding(horizontal = 16.dp),
                     searchInput = searchInput,
                     onSearchInputChanged = onSearchInputChanged,
+                    onSubmitSearch = onSubmitSearch,
                 )
             }
         }
-        item { PostListTopSection(postsFeed.highlightedPost, onArticleTapped) }
+        if (postsFeed.highlightedPost.id != "empty") {
+            item { PostListTopSection(postsFeed.highlightedPost, onArticleTapped) }
+        }
         if (postsFeed.recommendedPosts.isNotEmpty()) {
             item {
                 PostListSimpleSection(
@@ -439,16 +463,6 @@ private fun PostList(
                     onToggleFavorite
                 )
             }
-        }
-        if (postsFeed.popularPosts.isNotEmpty() && !showExpandedSearch) {
-            item {
-                PostListPopularSection(
-                    postsFeed.popularPosts, onArticleTapped
-                )
-            }
-        }
-        if (postsFeed.recentPosts.isNotEmpty()) {
-            item { PostListHistorySection(postsFeed.recentPosts, onArticleTapped) }
         }
     }
 }
@@ -582,17 +596,17 @@ private fun PostListDivider() {
 private fun HomeSearch(
     modifier: Modifier = Modifier,
     searchInput: String = "",
+    onSubmitSearch: (String) -> Unit,
     onSearchInputChanged: (String) -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(8.dp),
         border = BorderStroke(Dp.Hairline, MaterialTheme.colors.onSurface.copy(alpha = .6f)),
-        elevation = 4.dp,
+        elevation = 3.dp,
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 8.dp)
         ) {
             CompositionLocalProvider(LocalContentAlpha provides ContentAlpha.medium) {
                 IconButton(onClick = { /* Functionality not supported yet */ }) {
@@ -601,7 +615,6 @@ private fun HomeSearch(
                         contentDescription = stringResource(R.string.cd_search)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
                 val context = LocalContext.current
                 val focusManager = LocalFocusManager.current
                 val keyboardController = LocalSoftwareKeyboardController.current
@@ -618,25 +631,20 @@ private fun HomeSearch(
                     // keyboardActions submits the search query when the search key is pressed
                     keyboardActions = KeyboardActions(
                         onSearch = {
-                            submitSearch(onSearchInputChanged, context)
+                            onSubmitSearch(searchInput)
+                            onSearchInputChanged("")
                             keyboardController?.hide()
                         }
                     ),
                     modifier = Modifier
                         .interceptKey(Key.Enter) { // submit a search query when Enter is pressed
-                            submitSearch(onSearchInputChanged, context)
+                            onSubmitSearch(searchInput)
+                            onSearchInputChanged("")
                         }
                         .interceptKey(Key.Escape) { // dismiss focus when Escape is pressed
                             focusManager.clearFocus()
                         }
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { /* Functionality not supported yet */ }) {
-                    Icon(
-                        imageVector = Icons.Filled.MoreVert,
-                        contentDescription = stringResource(R.string.cd_more_actions)
-                    )
-                }
             }
         }
     }
@@ -687,13 +695,15 @@ private fun PostTopBar(
 @Composable
 private fun HomeTopAppBar(
     elevation: Dp,
-    openDrawer: () -> Unit
+    openDrawer: () -> Unit,
+    openSearch: () -> Unit,
+    filterFavorites: () -> Unit,
 ) {
     val title = "JetNews"
     TopAppBar(
         title = {
             Icon(
-                painter = painterResource(R.drawable.ic_jetnews_wordmark),
+                painter = painterResource(R.drawable.news),
                 contentDescription = title,
                 tint = MaterialTheme.colors.onBackground,
                 modifier = Modifier
@@ -711,7 +721,17 @@ private fun HomeTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = { /* TODO: Open search */ }) {
+            IconButton(onClick = {
+               filterFavorites()
+            }) {
+                Icon(
+                    imageVector = Icons.Filled.Favorite,
+                    contentDescription = stringResource(R.string.cd_fav)
+                )
+            }
+            IconButton(onClick = {
+                openSearch()
+            }) {
                 Icon(
                     imageVector = Icons.Filled.Search,
                     contentDescription = stringResource(R.string.cd_search)
@@ -739,6 +759,7 @@ fun PreviewHomeListDrawerScreen() {
                 isArticleOpen = false,
                 favorites = emptySet(),
                 isLoading = false,
+                isSearchOpen = false,
                 errorMessages = emptyList(),
                 searchInput = ""
             ),
@@ -748,9 +769,12 @@ fun PreviewHomeListDrawerScreen() {
             onRefreshPosts = {},
             onErrorDismiss = {},
             openDrawer = {},
+            openSearch = {},
+            filterFavorites = {},
             homeListLazyListState = rememberLazyListState(),
             scaffoldState = rememberScaffoldState(),
-            onSearchInputChanged = {}
+            onSearchInputChanged = {},
+            onSubmitSearch = {}
         )
     }
 }
@@ -773,6 +797,7 @@ fun PreviewHomeListNavRailScreen() {
                 postsFeed = postsFeed,
                 selectedPost = postsFeed.highlightedPost,
                 isArticleOpen = false,
+                isSearchOpen = false,
                 favorites = emptySet(),
                 isLoading = false,
                 errorMessages = emptyList(),
@@ -784,9 +809,12 @@ fun PreviewHomeListNavRailScreen() {
             onRefreshPosts = {},
             onErrorDismiss = {},
             openDrawer = {},
+            openSearch = {},
+            filterFavorites = {},
             homeListLazyListState = rememberLazyListState(),
             scaffoldState = rememberScaffoldState(),
-            onSearchInputChanged = {}
+            onSearchInputChanged = {},
+            onSubmitSearch = {}
         )
     }
 }
@@ -805,6 +833,7 @@ fun PreviewHomeListDetailScreen() {
                 postsFeed = postsFeed,
                 selectedPost = postsFeed.highlightedPost,
                 isArticleOpen = false,
+                isSearchOpen = false,
                 favorites = emptySet(),
                 isLoading = false,
                 errorMessages = emptyList(),
@@ -818,6 +847,8 @@ fun PreviewHomeListDetailScreen() {
             onInteractWithList = {},
             onInteractWithDetail = {},
             openDrawer = {},
+            openSearch = {},
+            filterFavorites = {},
             homeListLazyListState = rememberLazyListState(),
             articleDetailLazyListStates = postsFeed.allPosts.associate { post ->
                 key(post.id) {
@@ -825,7 +856,8 @@ fun PreviewHomeListDetailScreen() {
                 }
             },
             scaffoldState = rememberScaffoldState(),
-            onSearchInputChanged = {}
+            onSearchInputChanged = {},
+            onSubmitSearch = {}
         )
     }
 }

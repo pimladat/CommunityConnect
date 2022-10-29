@@ -997,8 +997,8 @@ val post4 = Post(
     imageThumbId = R.drawable.post_4_thumb
 )
 
-val post5 = Post(
-    id = "55db18283aca",
+val emptyPost = Post(
+    id = "empty",
     title = "Collections and sequences in Kotlin",
     subtitle = "Working with collections is a common task and the Kotlin Standard Library offers many great utility functions. It also offers two ways of…",
     url = "https://medium.com/androiddevelopers/collections-and-sequences-in-kotlin-55db18283aca",
@@ -1009,7 +1009,6 @@ val post5 = Post(
         readTimeMinutes = 4
     ),
     paragraphs = paragraphsPost5,
-    //imageId = R.drawable.post_5,
     imageThumbId = R.drawable.post_5_thumb
 )
 
@@ -1017,14 +1016,4 @@ val posts: PostsFeed =
     PostsFeed(
         highlightedPost = post4,
         recommendedPosts = listOf(post1, post2, post3),
-        popularPosts = listOf(
-            post5,
-            post1.copy(id = "post6"),
-            post2.copy(id = "post7")
-        ),
-        recentPosts = listOf(
-            post3.copy(id = "post8"),
-            post4.copy(id = "post9"),
-            post5.copy(id = "post10")
-        )
     )

@@ -17,6 +17,7 @@
 package com.example.jetnews
 
 import android.app.Application
+import android.os.StrictMode
 import com.example.jetnews.data.AppContainer
 import com.example.jetnews.data.AppContainerImpl
 

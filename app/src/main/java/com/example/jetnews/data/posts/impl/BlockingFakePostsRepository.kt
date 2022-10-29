@@ -30,6 +30,8 @@ import kotlinx.coroutines.withContext
 /**
  * Implementation of PostsRepository that returns a hardcoded list of
  * posts with resources synchronously.
+ *
+ * Used for testing.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class BlockingFakePostsRepository : PostsRepository {
@@ -58,5 +60,17 @@ class BlockingFakePostsRepository : PostsRepository {
         val set = favorites.value.toMutableSet()
         set.addOrRemove(postId)
         favorites.value = set
+    }
+
+    override suspend fun getSearchedPostsFeed(searchInput: String): Result<PostsFeed> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getFavoritedPostsFeed(): Result<PostsFeed> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateFavoritesDisplay() {
+        TODO("Not yet implemented")
     }
 }

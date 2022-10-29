@@ -24,8 +24,9 @@
     <string name="unbookmark">unbookmark</string>
     <string name="bookmark">bookmark</string>
     <string name="cd_search">Search</string>
+    <string name="cd_fav">Favorites</string>
     <string name="cd_interests">Interests</string>
-    <string name="published_in">Published in: \n%1$s</string>
+    <string name="published_in"> \n%1$s</string>
     <string name="fewer_stories">Show fewer stories like this?</string>
     <string name="fewer_stories_content">This feature is not yet implemented</string>
     <string name="agree">AGREE</string>
@@ -55,5 +56,6 @@
     <string name="cd_navigate_up">Navigate up</string>
     <string name="cd_navigate_home">Navigate to the home screen</string>
     <string name="cd_navigate_interests">Navigate to the interests screen</string>
+    <string name="favorites">Favorites</string>
 
 </resources>

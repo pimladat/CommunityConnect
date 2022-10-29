@@ -58,7 +58,10 @@ fun HomeRoute(
         onInteractWithFeed = { homeViewModel.interactedWithFeed() },
         onInteractWithArticleDetails = { homeViewModel.interactedWithArticleDetails(it) },
         onSearchInputChanged = { homeViewModel.onSearchInputChanged(it) },
+        onSubmitSearch = { homeViewModel.onSubmitSearch(it) },
         openDrawer = openDrawer,
+        openSearch = { homeViewModel.toggleSearch() },
+        filterFavorites = { homeViewModel.filterFavorites()},
         scaffoldState = scaffoldState,
     )
 }
@@ -92,7 +95,10 @@ fun HomeRoute(
     onInteractWithFeed: () -> Unit,
     onInteractWithArticleDetails: (String) -> Unit,
     onSearchInputChanged: (String) -> Unit,
+    onSubmitSearch: (String) -> Unit,
     openDrawer: () -> Unit,
+    openSearch: () -> Unit,
+    filterFavorites: () -> Unit,
     scaffoldState: ScaffoldState
 ) {
     // Construct the lazy list states for the list and the details outside of deciding which one to
@@ -121,11 +127,17 @@ fun HomeRoute(
                 onInteractWithList = onInteractWithFeed,
                 onInteractWithDetail = onInteractWithArticleDetails,
                 openDrawer = openDrawer,
+                openSearch = openSearch,
                 homeListLazyListState = homeListLazyListState,
                 articleDetailLazyListStates = articleDetailLazyListStates,
                 scaffoldState = scaffoldState,
                 onSearchInputChanged = onSearchInputChanged,
+                onSubmitSearch = onSubmitSearch,
+                filterFavorites = filterFavorites,
             )
+            BackHandler {
+                onRefreshPosts()
+            }
         }
         HomeScreenType.Feed -> {
             HomeFeedScreen(
@@ -136,10 +148,17 @@ fun HomeRoute(
                 onRefreshPosts = onRefreshPosts,
                 onErrorDismiss = onErrorDismiss,
                 openDrawer = openDrawer,
+                openSearch = openSearch,
                 homeListLazyListState = homeListLazyListState,
                 scaffoldState = scaffoldState,
                 onSearchInputChanged = onSearchInputChanged,
+                searchInput = uiState.searchInput,
+                onSubmitSearch = onSubmitSearch,
+                filterFavorites = filterFavorites,
             )
+            BackHandler {
+                onRefreshPosts()
+            }
         }
         HomeScreenType.ArticleDetails -> {
             // Guaranteed by above condition for home screen type

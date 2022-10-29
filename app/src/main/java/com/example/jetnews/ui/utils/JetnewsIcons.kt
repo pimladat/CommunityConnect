@@ -84,11 +84,11 @@ fun ShareButton(onClick: () -> Unit) {
 }
 
 @Composable
-fun TextSettingsButton(onClick: () -> Unit) {
-    IconButton(onClick) {
-        Icon(
-            painter = painterResource(R.drawable.ic_text_settings),
-            contentDescription = stringResource(R.string.cd_text_settings)
-        )
-    }
-}
+fun TextSettingsButton(onClick: () -> Unit) {}
+    //IconButton(onClick) {
+        //Icon(
+            //painter = painterResource(R.drawable.ic_text_settings),
+            //contentDescription = stringResource(R.string.cd_text_settings)
+        //)
+    //}
+//}

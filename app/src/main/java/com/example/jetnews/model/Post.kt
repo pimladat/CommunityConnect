@@ -31,14 +31,8 @@ data class Post(
     val metadata: Metadata,
     val paragraphs: List<Paragraph> = emptyList(),
     val imageURL: String? = null,
+    val isFavorite: Boolean? = false,
     @DrawableRes val imageThumbId: Int
-)
-
-@Entity(tableName = "posts")
-data class PostData(
-    @PrimaryKey val title: String,
-    @ColumnInfo(name = "url") val url: String? = null,
-    @ColumnInfo(name = "isFavorite") val isFavorite: Boolean? = false,
 )
 
 data class Metadata(
@@ -48,8 +42,7 @@ data class Metadata(
 )
 
 data class PostAuthor(
-    val name: String,
-    //val url: String? = null
+    val name: String
 )
 
 data class Publication(
@@ -59,7 +52,7 @@ data class Publication(
 
 data class Paragraph(
     val type: ParagraphType,
-    val text: String,
+    var text: String,
     val markups: List<Markup> = emptyList()
 )
 

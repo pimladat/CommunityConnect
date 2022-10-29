@@ -16,7 +16,6 @@
 
 package com.example.jetnews.data.posts
 
-import android.content.Context
 import com.example.jetnews.data.Result
 import com.example.jetnews.model.Post
 import com.example.jetnews.model.PostsFeed
@@ -45,4 +44,19 @@ interface PostsRepository {
      * Toggle a postId to be a favorite or not.
      */
     suspend fun toggleFavorite(postId: String)
+
+    /**
+     * Get filtered posts feed
+     */
+    suspend fun getSearchedPostsFeed(searchInput: String): Result<PostsFeed>
+
+    /**
+     * Show only favorites
+     */
+    suspend fun getFavoritedPostsFeed(): Result<PostsFeed>
+
+    /**
+     * Update UI for favorites display
+     */
+    suspend fun updateFavoritesDisplay()
 }

@@ -16,6 +16,7 @@
 
 package com.example.jetnews.ui.home
 
+import androidx.compose.foundation.rememberScrollState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -25,6 +26,7 @@ import com.example.jetnews.data.posts.PostsRepository
 import com.example.jetnews.model.Post
 import com.example.jetnews.model.PostsFeed
 import com.example.jetnews.utils.ErrorMessage
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
@@ -32,6 +34,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import java.util.UUID
 
 /**
@@ -70,7 +73,8 @@ sealed interface HomeUiState {
         val favorites: Set<String>,
         override val isLoading: Boolean,
         override val errorMessages: List<ErrorMessage>,
-        override val searchInput: String
+        override val searchInput: String,
+        val isSearchOpen: Boolean,
     ) : HomeUiState
 }
 
@@ -84,6 +88,7 @@ private data class HomeViewModelState(
     val favorites: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val errorMessages: List<ErrorMessage> = emptyList(),
+    val isSearchOpen: Boolean = false,
     val searchInput: String = "",
 ) {
 
@@ -111,6 +116,7 @@ private data class HomeViewModelState(
                 favorites = favorites,
                 isLoading = isLoading,
                 errorMessages = errorMessages,
+                isSearchOpen = isSearchOpen,
                 searchInput = searchInput
             )
         }
@@ -136,13 +142,6 @@ class HomeViewModel(
 
     init {
         refreshPosts()
-
-        // Observe for favorite changes in the repo layer
-        viewModelScope.launch {
-            postsRepository.observeFavorites().collect { favorites ->
-                viewModelState.update { it.copy(favorites = favorites) }
-            }
-        }
     }
 
     /**
@@ -166,6 +165,22 @@ class HomeViewModel(
                     }
                 }
             }
+        }
+        // Add favorites to favorite set
+        viewModelScope.launch {
+            val updateFavorites = async { postsRepository.updateFavoritesDisplay() }
+            updateFavorites.await();
+            postsRepository.observeFavorites().collect { favorites ->
+                viewModelState.update { it.copy(favorites = favorites) }
+            }
+        }
+    }
+
+
+
+    fun toggleSearch() {
+        viewModelState.update { currentUiState ->
+            currentUiState.copy(isSearchOpen = !currentUiState.isSearchOpen)
         }
     }
 
@@ -223,6 +238,44 @@ class HomeViewModel(
     fun onSearchInputChanged(searchInput: String) {
         viewModelState.update {
             it.copy(searchInput = searchInput)
+        }
+    }
+
+    fun onSubmitSearch(searchInput: String) {
+        viewModelState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            val result = postsRepository.getSearchedPostsFeed(searchInput)
+            viewModelState.update {
+                when (result) {
+                    is Result.Success -> it.copy(postsFeed = result.data, isLoading = false)
+                    is Result.Error -> {
+                        val errorMessages = it.errorMessages + ErrorMessage(
+                            id = UUID.randomUUID().mostSignificantBits,
+                            messageId = R.string.load_error
+                        )
+                        it.copy(errorMessages = errorMessages, isLoading = false)
+                    }
+                }
+            }
+        }
+    }
+
+    fun filterFavorites() {
+        viewModelState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            val result = postsRepository.getFavoritedPostsFeed()
+            viewModelState.update {
+                when (result) {
+                    is Result.Success -> it.copy(postsFeed = result.data, isLoading = false)
+                    is Result.Error -> {
+                        val errorMessages = it.errorMessages + ErrorMessage(
+                            id = UUID.randomUUID().mostSignificantBits,
+                            messageId = R.string.load_error
+                        )
+                        it.copy(errorMessages = errorMessages, isLoading = false)
+                    }
+                }
+            }
         }
     }
 
